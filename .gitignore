@@ -33,3 +33,6 @@
 
 # Markdown pics
 *.assets/
+
+# vscode
+*.vscode/
