@@ -9,7 +9,8 @@ using namespace std;
 // 定义结点
 struct node {
     char data;
-    node *left, *right;
+    node *left;
+    node *right;
     node(char alpha = '\0')
     {
         data = alpha;
@@ -97,26 +98,25 @@ int comOper(char x, char y)
         else return -1;
     }
     // 其他情况应该报异常
+    return 2;
 }
 
-
 // 建立表达式二叉树
-node* buildTree(string str)
+node* buildTree(string str = "a+b*c-d+e")
 {
-    // 是不带括号的中缀表达式
-    str = "a+b*c-d+e";
+    // 参数str是不带括号的中缀表达式
+    // 构造由运算符和运算数结点组成的容器
     vector<node*> expr;
     for (char item: str)
     {
-        node* temp;
-        temp->data=item;
+        node* temp = new node(item);
         expr.push_back(temp);
     }
     // 分别定义操作符栈和操作数栈
     stack<node*> stk_oper, stk_operand;
     for(node* item: expr)
     {
-        if (isdigit(item->data))
+        if (isalpha(item->data))
         {
             stk_operand.push(item);
         }
@@ -136,15 +136,24 @@ node* buildTree(string str)
                 stk_oper.pop();
             }
             stk_oper.push(item);
-        }
-        
+        }  
     }
+    while(!stk_oper.empty())
+    {
+        stk_oper.top()->right = stk_operand.top();
+        stk_operand.pop();
+        stk_oper.top()->left = stk_operand.top();
+        stk_operand.pop();
+        stk_operand.push(stk_oper.top());
+        stk_oper.pop();
+    }
+    return stk_operand.top();
 }
 
 int main()
 {
-    node node1('a'), node2('b');
-    cout << node1.data << endl << node2.data;
+    node* tree = buildTree();
+    midOrder(tree);
 }
 
 
