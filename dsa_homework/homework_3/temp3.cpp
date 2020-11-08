@@ -72,19 +72,6 @@ void levelOrder(node *T)
     } 
 }
 
-stack<node*> traceRoute(node* rt, node* p)
-{
-    stack<node*> stk;
-    stk.push(rt);
-    while(!stk.empty())
-    {
-        stk.push(rt->left);
-        stk.push(rt->right);
-
-    } 
-    return stk;
-}
-
 // 比较运算符优先级
 int comOper(char x, char y)
 {
@@ -115,16 +102,8 @@ int comOper(char x, char y)
 }
 
 // 建立表达式二叉树
-node* buildTree(string str = "a+b*c-d+e")
+node* buildTree(vector<node*> expr)
 {
-    // 参数str是不带括号的中缀表达式
-    // 构造由运算符和运算数结点组成的容器
-    vector<node*> expr;
-    for (char item: str)
-    {
-        node* temp = new node(item);
-        expr.push_back(temp);
-    }
     // 分别定义操作符栈和操作数栈
     stack<node*> stk_oper, stk_operand;
     for(node* item: expr)
@@ -163,16 +142,20 @@ node* buildTree(string str = "a+b*c-d+e")
     return stk_operand.top();
 }
 
+
+
 int main()
 {
-    node* rt = buildTree();
-    midOrder(rt);
-    // 构造测试节点p
-    node* p = rt->left->right;
-    // 构造测试节点q
-    node* q = rt->left->left->right;
-    
-
+    // 构造由运算符和运算数结点组成的容器
+    vector<node*> expression;
+    for (char item: "a+b*c-d+e")
+    {
+        node* temp = new node(item);
+        expression.push_back(temp);
+    }
+    node* tree = buildTree(expression);
+    cout << tree->data;
+    // midOrder(tree);
 }
 
 
