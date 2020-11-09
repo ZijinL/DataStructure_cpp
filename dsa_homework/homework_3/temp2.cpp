@@ -62,11 +62,11 @@ void postOrder(node *T)
 void levelOrder(node *T)
 {
     queue<node*> que;
-    que.push(T);
+    if (T) que.push(T);
     while(!que.empty())
     {
         if (que.front()->left) que.push(que.front()->left);
-        else if (que.front()->right) que.push(que.front()->right);
+        if (que.front()->right) que.push(que.front()->right);
         visit(que.front());
         que.pop();
     } 
@@ -89,33 +89,30 @@ stack<node*> traceRoute(node* rt, node* p)
 int comOper(char x, char y)
 {
     if (x == y) return 0;
-
-    if (x == '*')
+    if (y == '(') return 1;
+    if (isalpha(y)) return -1;
+    switch (x)
     {
-        if (y == '/') return 0;
-        else return 1;
+        case '*':
+            if (y == '/') return 0;
+            else return 1;
+        case '/':
+            if (y == '*') return 0;
+            else return 1;
+        case '+':
+            if (y == '-') return 0;
+            else return -1;
+        case '-':
+            if (y == '+') return 0;
+            else return -1;        
+        // 其他情况应该报异常
+        default:
+            return 2;
     }
-    else if (x == '/')
-    {
-        if (y == '*') return 0;
-        else return 1;
-    }
-    else if (x == '+')
-    {
-        if (y == '-') return 0;
-        else return -1;
-    }
-    else if (x == '-')
-    {
-        if (y == '+') return 0;
-        else return -1;
-    }
-    // 其他情况应该报异常
-    return 2;
 }
 
 // 建立表达式二叉树
-node* buildTree(string str = "a+b*c-d+e")
+node* buildTree(string str = "(a+b*(c-d))*e")
 {
     // 参数str是不带括号的中缀表达式
     // 构造由运算符和运算数结点组成的容器
@@ -129,11 +126,24 @@ node* buildTree(string str = "a+b*c-d+e")
     stack<node*> stk_oper, stk_operand;
     for(node* item: expr)
     {
-        if (isalpha(item->data))
+        if (item->data == ')')
+        {
+            while(stk_oper.top()->data != '(')
+            {
+                stk_oper.top()->right = stk_operand.top();
+                stk_operand.pop();
+                stk_oper.top()->left = stk_operand.top();
+                stk_operand.pop();
+                stk_operand.push(stk_oper.top());
+                stk_oper.pop();
+            }
+            stk_oper.pop();
+        }
+        else if (isalpha(item->data))
         {
             stk_operand.push(item);
         }
-        else if (stk_oper.empty() || comOper(item->data, stk_oper.top()->data)==1)
+        else if (item->data == '(' || stk_oper.empty() || comOper(item->data, stk_oper.top()->data)==1)
         {
             stk_oper.push(item);
         }
@@ -163,15 +173,106 @@ node* buildTree(string str = "a+b*c-d+e")
     return stk_operand.top();
 }
 
+node* commonParent(node* rt, node* p, node* q)
+{
+    // 递归终止条件
+	if (rt == nullptr || p == nullptr || q == nullptr)
+		return nullptr;
+ 
+	if (p ==rt || q ==rt)
+		return rt;
+	
+    // 初始化当前指针
+	node* cur = nullptr;
+ 
+    // 结点是否同时在左子树中
+	node* left_tree = commonParent(rt->left, p, q);
+	if (left_tree)
+	{
+        // 首先继续访问左子树
+		cur = commonParent(left_tree->left, p, q);
+        // 如果左子树为空还未找到则访问右子树
+		if (cur == nullptr)
+		   cur = commonParent(left_tree->right, p, q);
+        // 
+		if ((cur == p) && (left_tree == q) || (cur == q) && (left_tree == p))
+			return rt;
+	}
+
+    // 结点是否同时在右子树中
+	node* right_tree = commonParent(rt->right, p, q);
+	if (right_tree)
+	{
+		cur = commonParent(right_tree->left, p, q);
+		if (cur == nullptr)
+			cur = commonParent(right_tree->right, p, q);
+		if ((cur == p) && (left_tree == q) || (cur == q) && (left_tree == p))
+			return rt;
+	}
+
+	if (left_tree && right_tree)
+		return rt;
+	if (left_tree == nullptr)
+		return right_tree;
+	else
+		return left_tree;
+}
+
+node* commonParent2(node* rt, node* p, node* q)
+{
+    if (!rt || rt == p || rt == q) return rt;
+    node* left = commonParent2(rt->left, p, q);
+    node* right = commonParent2(rt->right, p, q);
+    if (!left) return right;
+    if (!right) return left;
+    return rt;
+}
+
+void inOrder_bracket(node* rt)
+{
+    // 如果为空直接返回
+    if (!rt) return;
+    // 先访问左子树
+    if (rt->left)
+    {
+        // 如果存在运算符优先级逆序，则添加括号
+        if (comOper(rt->data, rt->left->data) == 1)
+        {
+            cout << "( ";
+            inOrder_bracket(rt->left);
+            cout << ")";
+        }
+        else inOrder_bracket(rt->left);
+    }
+    cout << rt->data << " ";
+    if (rt->right)
+    {
+        if (comOper(rt->data, rt->right->data) == 1)
+        {
+            cout << "( ";
+            inOrder_bracket(rt->right);
+            cout << ")";
+        }
+        else inOrder_bracket(rt->right);
+    }
+}
+
+int countLeaves(node* rt)
+{
+    if (!rt) return 0;
+    if (!rt->left && !rt->right) return 1;
+    return countLeaves(rt->left) + countLeaves(rt->right);
+}
+
 int main()
 {
     node* rt = buildTree();
+    cout << endl << "preOrder: ";
+    preOrder(rt);
+    cout << endl << "midOrder: ";
     midOrder(rt);
-    // 构造测试节点p
-    node* p = rt->left->right;
-    // 构造测试节点q
-    node* q = rt->left->left->right;
-    
+    cout << endl << "Number of leaves: ";
+    cout << countLeaves(rt);
 
 }
 
