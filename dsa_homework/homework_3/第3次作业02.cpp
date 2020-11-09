@@ -1,45 +1,3 @@
-# DSA
-
-
-
-## 诚实作业保证
-
-我承诺诚实作业，没有抄袭他人
-
-## 题目
-
-![image-20201109084714322](第3次作业02.assets/image-20201109084714322.png)
-
-## 算法分析
-
-递归调用寻找最近公共节点的函数
-
-1. 结束条件：当前根节点为空或者当前根节点等于任一待寻找结点；
-2. 规模缩小：先寻找是否都在当前根节点左子树中，再寻找是否都在当前右子树中。
-3. 返回值
-   1. 如果`left`和`right`都空，则两子树都不含`p` `q`，返回的是空指针；
-   2. 如果`left`和`right`都不为空，则分别在左右子树中，返回`rt`；
-   3. 如果左右一个为空，则都在另一侧中；或者也有可能`rt`遇到其中一个结点；此时返回另一个结点。
-
-
-
-## 算法代码
-
-```cpp
-node* commonParent(node* rt, node* p, node* q)
-{
-    if (!rt || rt == p || rt == q) return rt;
-    node* left = commonParent2(rt->left, p, q);
-    node* right = commonParent2(rt->right, p, q);
-    if (!left) return right;
-    if (!right) return left;
-    return rt;
-}
-```
-
-## 测试及其他代码
-
-```cpp
 # include <iostream>
 # include <string>
 # include <stack>
@@ -132,6 +90,7 @@ int comOper(char x, char y)
 {
     if (x == y) return 0;
     if (y == '(') return 1;
+    if (isalpha(y)) return -1;
     switch (x)
     {
         case '*':
@@ -153,7 +112,7 @@ int comOper(char x, char y)
 }
 
 // 建立表达式二叉树
-node* buildTree(string str = "a+b*(c-d)+e")
+node* buildTree(string str = "(a+b*(c-d))*e")
 {
     // 参数str是不带括号的中缀表达式
     // 构造由运算符和运算数结点组成的容器
@@ -214,25 +173,42 @@ node* buildTree(string str = "a+b*(c-d)+e")
     return stk_operand.top();
 }
 
+void inOrder_bracket(node* rt)
+{
+    // 如果为空直接返回
+    if (!rt) return;
+    // 先访问左子树
+    if (rt->left)
+    {
+        // 如果存在运算符优先级逆序，则添加括号
+        if (comOper(rt->data, rt->left->data) == 1)
+        {
+            cout << "( ";
+            inOrder_bracket(rt->left);
+            cout << ")";
+        }
+        else inOrder_bracket(rt->left);
+    }
+    cout << rt->data << " ";
+    if (rt->right)
+    {
+        if (comOper(rt->data, rt->right->data) == 1)
+        {
+            cout << "( ";
+            inOrder_bracket(rt->right);
+            cout << ")";
+        }
+        else inOrder_bracket(rt->right);
+    }
+}
+
 int main()
 {
-    // 建立表达式二叉树
     node* rt = buildTree();
-    cout << "Expression: ";
+    cout << endl << "preOrder: ";
+    preOrder(rt);
+    cout << endl << "midOrder: ";
     midOrder(rt);
-    // 构造测试节点p
-    node* p = rt->left->left;
-    // 构造测试节点q
-    node* q = rt->left->right->right->left;
-    cout << endl << "p: " << p->data;
-    cout << endl << "q: " << q->data;
-    cout << endl << "commonParent: " << commonParent(rt, p, q)->data;
+    cout << endl << "Expression with brackets: ";
+    inOrder_bracket(rt);
 }
-```
-
-
-
-## 运行结果截图
-
-![image-20201109090556071](第3次作业02.assets/image-20201109090556071.png)
-

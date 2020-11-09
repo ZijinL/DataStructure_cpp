@@ -90,7 +90,6 @@ int comOper(char x, char y)
 {
     if (x == y) return 0;
     if (y == '(') return 1;
-    if (isalpha(y)) return -1;
     switch (x)
     {
         case '*':
@@ -112,7 +111,7 @@ int comOper(char x, char y)
 }
 
 // 建立表达式二叉树
-node* buildTree(string str = "(a+b*(c-d))*e")
+node* buildTree(string str = "a+b*(c-d)+e")
 {
     // 参数str是不带括号的中缀表达式
     // 构造由运算符和运算数结点组成的容器
@@ -175,106 +174,25 @@ node* buildTree(string str = "(a+b*(c-d))*e")
 
 node* commonParent(node* rt, node* p, node* q)
 {
-    // 递归终止条件
-	if (rt == nullptr || p == nullptr || q == nullptr)
-		return nullptr;
- 
-	if (p ==rt || q ==rt)
-		return rt;
-	
-    // 初始化当前指针
-	node* cur = nullptr;
- 
-    // 结点是否同时在左子树中
-	node* left_tree = commonParent(rt->left, p, q);
-	if (left_tree)
-	{
-        // 首先继续访问左子树
-		cur = commonParent(left_tree->left, p, q);
-        // 如果左子树为空还未找到则访问右子树
-		if (cur == nullptr)
-		   cur = commonParent(left_tree->right, p, q);
-        // 
-		if ((cur == p) && (left_tree == q) || (cur == q) && (left_tree == p))
-			return rt;
-	}
-
-    // 结点是否同时在右子树中
-	node* right_tree = commonParent(rt->right, p, q);
-	if (right_tree)
-	{
-		cur = commonParent(right_tree->left, p, q);
-		if (cur == nullptr)
-			cur = commonParent(right_tree->right, p, q);
-		if ((cur == p) && (left_tree == q) || (cur == q) && (left_tree == p))
-			return rt;
-	}
-
-	if (left_tree && right_tree)
-		return rt;
-	if (left_tree == nullptr)
-		return right_tree;
-	else
-		return left_tree;
-}
-
-node* commonParent2(node* rt, node* p, node* q)
-{
     if (!rt || rt == p || rt == q) return rt;
-    node* left = commonParent2(rt->left, p, q);
-    node* right = commonParent2(rt->right, p, q);
+    node* left = commonParent(rt->left, p, q);
+    node* right = commonParent(rt->right, p, q);
     if (!left) return right;
     if (!right) return left;
     return rt;
 }
 
-void inOrder_bracket(node* rt)
-{
-    // 如果为空直接返回
-    if (!rt) return;
-    // 先访问左子树
-    if (rt->left)
-    {
-        // 如果存在运算符优先级逆序，则添加括号
-        if (comOper(rt->data, rt->left->data) == 1)
-        {
-            cout << "( ";
-            inOrder_bracket(rt->left);
-            cout << ")";
-        }
-        else inOrder_bracket(rt->left);
-    }
-    cout << rt->data << " ";
-    if (rt->right)
-    {
-        if (comOper(rt->data, rt->right->data) == 1)
-        {
-            cout << "( ";
-            inOrder_bracket(rt->right);
-            cout << ")";
-        }
-        else inOrder_bracket(rt->right);
-    }
-}
-
-int countLeaves(node* rt)
-{
-    if (!rt) return 0;
-    if (!rt->left && !rt->right) return 1;
-    return countLeaves(rt->left) + countLeaves(rt->right);
-}
-
 int main()
 {
+    // 建立表达式二叉树
     node* rt = buildTree();
-    cout << endl << "preOrder: ";
-    preOrder(rt);
-    cout << endl << "midOrder: ";
+    cout << "Expression: ";
     midOrder(rt);
-    cout << endl << "Number of leaves: ";
-    cout << countLeaves(rt);
-
+    // 构造测试节点p
+    node* p = rt->left->left;
+    // 构造测试节点q
+    node* q = rt->left->right->right->left;
+    cout << endl << "p: " << p->data;
+    cout << endl << "q: " << q->data;
+    cout << endl << "commonParent: " << commonParent(rt, p, q)->data;
 }
-
-
-
